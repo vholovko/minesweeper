@@ -7,6 +7,6 @@
         xmlns:sWidgets="clr-namespace:Minesweeper.SWidgets"
         mc:Ignorable="d"
         Title="MainWindow" ResizeMode="NoResize" SizeToContent="WidthAndHeight">
-    <WrapPanel Name="Container" Orientation="Horizontal" MaxWidth="240" MaxHeight="192">
+    <WrapPanel Name="Container" Orientation="Horizontal">
     </WrapPanel>
 </Window>
