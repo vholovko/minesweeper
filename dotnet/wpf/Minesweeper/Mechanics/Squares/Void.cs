@@ -8,16 +8,16 @@ namespace Minesweeper.Mechanics.Squares
     {
         public Void( Stream<Unit> sClicked )
         {
-            SClip = sClicked.Map( u => Square );
+            var square = new CellLoop<Square>();
+            square.Loop( sClicked.Map( u => new Square(
+                null,
+                FontWeights.Normal,
+                SystemColors.ControlTextBrush,
+                SystemColors.ControlBrush,
+                false ) ).Hold( Mechanics.Square.Default ) );
+            Square = square;
         }
 
-        public static Square Square => new Square(
-            null,
-            FontWeights.Normal,
-            SystemColors.ControlTextBrush,
-            SystemColors.ControlBrush,
-            false );
-
-        public Stream<Square> SClip { get; }
+        public Cell<Square> Square { get; }
     }
 }

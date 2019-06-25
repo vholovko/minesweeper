@@ -26,19 +26,19 @@ namespace Minesweeper.Mechanics
         private IReadOnlyDictionary<int, ISet<int>> Adjacent { get; }
         private IReadOnlyDictionary<int, int> Hints { get; }
 
-        public Stream<Square> ToSClip( int target, Stream<Unit> sClicked )
+        public Cell<Square> ToSquare( int target, Stream<Unit> sClicked )
         {
             if( Mines.Contains( target ) )
             {
-                return new Mine( sClicked ).SClip;
+                return new Mine( sClicked ).Square;
             }
 
             if( Hints.ContainsKey( target ) )
             {
-                return Hints[target] > 0 ? new Hint( Hints[target], sClicked ).SClip : new Void( sClicked ).SClip;
+                return Hints[target] > 0 ? new Hint( Hints[target], sClicked ).Square : new Void( sClicked ).Square;
             }
 
-            return Stream.Never<Square>();
+            return Cell.Constant( Square.Default );
         }
 
         private ISet<int> LayMines( int amount, int total )

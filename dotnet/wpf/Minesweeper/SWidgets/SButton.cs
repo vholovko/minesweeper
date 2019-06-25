@@ -11,25 +11,34 @@ namespace Minesweeper.SWidgets
     {
         private readonly IReadOnlyList<IListener> listeners;
 
-        public SButton( Stream<Square> setSquare )
+        public SButton( Cell<Square> square )
         {
             StreamSink<Unit> sClickedSink = Stream.CreateSink<Unit>();
             SClicked = sClickedSink;
             Click += ( sender, args ) => sClickedSink.Send( Unit.Value );
 
+            // Set the initial value at the end of the transaction so it works with CellLoops.
+            Transaction.Post( () =>
+            {
+                var sample = square.Sample();
+
+                Content = sample.Content;
+                FontWeight = sample.FontWeight;
+                Foreground = sample.Foreground;
+                Background = sample.Background;
+                IsEnabled = sample.IsEnabled;
+            } );
+
             // ReSharper disable once UseObjectOrCollectionInitializer
             List<IListener> listeners = new List<IListener>();
-            listeners.Add( setSquare.Listen( square =>
+            listeners.Add( square.Updates().Listen( e => Dispatcher.InvokeIfNecessary( () =>
             {
-                Dispatcher.InvokeAsync( () =>
-                {
-                    Content = square.Content;
-                    FontWeight = square.FontWeight;
-                    Foreground = square.Foreground;
-                    Background = square.Background;
-                    IsEnabled = square.IsEnabled;
-                } );
-            } ) );
+                Content = e.Content;
+                FontWeight = e.FontWeight;
+                Foreground = e.Foreground;
+                Background = e.Background;
+                IsEnabled = e.IsEnabled;
+            } ) ) );
             this.listeners = listeners;
         }
 
@@ -37,7 +46,7 @@ namespace Minesweeper.SWidgets
 
         public void Dispose()
         {
-            foreach( IListener l in listeners )
+            foreach( IListener l in this.listeners )
             {
                 l.Unlisten();
             }

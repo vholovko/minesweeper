@@ -28,9 +28,9 @@ namespace Minesweeper
             // const int mines = 40;
 
             // Expert
-//            const int columns = 30;
-//            const int rows = 16;
-//            const int mines = 99;
+            //            const int columns = 30;
+            //            const int rows = 16;
+            //            const int mines = 99;
 
             Container.MaxWidth = buttonSize * columns;
             Container.MaxHeight = buttonSize * rows;
@@ -40,9 +40,9 @@ namespace Minesweeper
             {
                 Transaction.RunVoid( () =>
                  {
-                     var stream = new StreamLoop<Square>();
-                     var button = new SButton( stream ) { Width = buttonSize, Height = buttonSize };
-                     stream.Loop( game.ToSClip( target, button.SClicked ) );
+                     var square = new CellLoop<Square>();
+                     var button = new SButton( square ) { Width = buttonSize, Height = buttonSize };
+                     square.Loop( game.ToSquare( target, button.SClicked ) );
                      Container.Children.Add( button );
                  } );
             }

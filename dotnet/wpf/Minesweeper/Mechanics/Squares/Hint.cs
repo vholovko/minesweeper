@@ -23,18 +23,19 @@ namespace Minesweeper.Mechanics.Squares
         public Hint( int minesAround, Stream<Unit> sClicked )
         {
             MinesAround = minesAround;
-            SClip = sClicked.Map( u => Square );
+
+            var square = new CellLoop<Square>();
+            square.Loop( sClicked.Map( u => new Square(
+                MinesAround,
+                FontWeights.Bold,
+                Colors[MinesAround],
+                SystemColors.ControlBrush,
+                false ) ).Hold( Mechanics.Square.Default ) );
+            Square = square;
         }
 
         private int MinesAround { get; }
 
-        private Square Square => new Square(
-            MinesAround,
-            FontWeights.Bold,
-            Colors[MinesAround],
-            SystemColors.ControlBrush,
-            false );
-
-        public Stream<Square> SClip { get; }
+        public Cell<Square> Square { get; }
     }
 }
