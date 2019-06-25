@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Media;
 using Sodium.Frp;
@@ -8,7 +7,7 @@ namespace Minesweeper.Mechanics.Squares
 {
     public class Hint
     {
-        private readonly IReadOnlyDictionary<int, SolidColorBrush> Colors = new Dictionary<int, SolidColorBrush>
+        private static readonly IReadOnlyDictionary<int, SolidColorBrush> Colors = new Dictionary<int, SolidColorBrush>
         {
             { 1, Brushes.Blue },
             { 2, Brushes.Green },
@@ -20,13 +19,21 @@ namespace Minesweeper.Mechanics.Squares
             { 8, Brushes.DarkRed }
         };
 
-        public Hint( int target, int minesAround )
+        public Hint( int target, int minesAround, Stream<int> hitStream )
         {
-            Target = target;
-            Square = Cell.Constant( new Square( minesAround, FontWeights.Bold, Colors[minesAround], SystemColors.ControlBrush, false ) );
+            MinesAround = minesAround;
+            SClip = hitStream.Filter( target.Equals ).Map( t => HitSquare );
         }
-        public int Target { get; }
 
-        public Cell<Square> Square { get; }
+        private int MinesAround { get; }
+
+        private Square HitSquare => new Square(
+            MinesAround,
+            FontWeights.Bold,
+            Colors[MinesAround],
+            SystemColors.ControlBrush,
+            false );
+
+        public Stream<Square> SClip { get; }
     }
 }

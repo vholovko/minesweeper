@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Minesweeper.Mechanics.Squares;
 using Sodium.Frp;
+using Sodium.Functional;
 using Void = Minesweeper.Mechanics.Squares.Void;
 
 namespace Minesweeper.Mechanics
@@ -16,34 +17,29 @@ namespace Minesweeper.Mechanics
 
         public Game( int columns, int rows, int mines )
         {
-            var bombs = LayMines( mines, columns * rows );
-            var hints = GatherHints( bombs, columns, rows );
-
-            var squares = new List<Cell<Square>>();
-            foreach (var target in Enumerable.Range(0, columns * rows))
-            {
-                if (bombs.Contains(target))
-                {
-                    squares.Add( new Mine( target ).Square );
-                } else if (hints.ContainsKey(target))
-                {
-                    if (hints[target] > 0)
-                    {
-                        squares.Add(new Hint( target, hints[target] ).Square);
-                    }
-                    else
-                    {
-                        squares.Add( new Void( target ).Square );
-                    }
-                }
-            }
-
-            // Squares = Sequence( squares );
-            Squares = squares;
+            Mines = LayMines( mines, columns * rows );
+            Hints = GatherHints( Mines, columns, rows );
         }
 
-        public List<Cell<Square>> Squares { get; }
-        public Dictionary<int, Stream<ISet<int>>> SFlip { get; }
+        private ISet<int> Mines { get; }
+        private IReadOnlyDictionary<int, int> Hints { get; }
+
+        public Stream<Square> ToSClip( int target, Stream<Unit> sClicked )
+        {
+            var hitStream = sClicked.Map(u => target);
+
+            if( Mines.Contains( target ) )
+            {
+                return new Mine( target, hitStream ).SClip;
+            }
+
+            if( Hints.ContainsKey( target ) )
+            {
+                return Hints[target] > 0 ? new Hint( target, Hints[target], hitStream ).SClip : new Void( target, hitStream ).SClip;
+            }
+
+            return Stream.Never<Square>();
+        }
 
         private ISet<int> LayMines( int amount, int total )
         {

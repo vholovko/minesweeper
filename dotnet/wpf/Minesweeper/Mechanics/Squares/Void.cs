@@ -5,13 +5,18 @@ namespace Minesweeper.Mechanics.Squares
 {
     public class Void
     {
-        public Void( int target )
+        public Void( int target, Stream<int> hitStream)
         {
-            Target = target;
-            Square = Cell.Constant( new Square( null, FontWeights.Normal, SystemColors.ControlTextBrush, SystemColors.ControlBrush, false ) );
+            SClip = hitStream.Filter( target.Equals ).Map( t => HitSquare );
         }
-        public int Target { get; }
 
-        public Cell<Square> Square { get; }
+        public static Square HitSquare => new Square(
+            null,
+            FontWeights.Normal,
+            SystemColors.ControlTextBrush,
+            SystemColors.ControlBrush,
+            false);
+
+        public Stream<Square> SClip { get; }
     }
 }

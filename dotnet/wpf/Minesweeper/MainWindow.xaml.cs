@@ -1,6 +1,8 @@
-﻿using System.Windows;
+﻿using System.Linq;
+using System.Windows;
 using Minesweeper.Mechanics;
 using Minesweeper.SWidgets;
+using Sodium.Frp;
 
 namespace Minesweeper
 {
@@ -16,9 +18,9 @@ namespace Minesweeper
             const int buttonSize = 24;
 
             // Introduction
-//            const int columns = 8;
-//            const int rows = 8;
-//            const int mines = 10;
+            //            const int columns = 8;
+            //            const int rows = 8;
+            //            const int mines = 10;
 
             // Intermediate
             // const int columns = 16;
@@ -32,12 +34,17 @@ namespace Minesweeper
 
             Container.MaxWidth = buttonSize * columns;
             Container.MaxHeight = buttonSize * rows;
-            var squares = new Game(columns, rows, mines).Squares;
+            var game = new Game( columns, rows, mines );
 
-            foreach( var square in squares )
+            foreach( var target in Enumerable.Range( 0, columns * rows ) )
             {
-                var sButton = new SButton( square ) { Width = buttonSize, Height = buttonSize };
-                Container.Children.Add( sButton );
+                Transaction.RunVoid( () =>
+                 {
+                     var stream = new StreamLoop<Square>();
+                     var button = new SButton( stream ) { Width = buttonSize, Height = buttonSize };
+                     stream.Loop( game.ToSClip( target, button.SClicked ) );
+                     Container.Children.Add( button );
+                 } );
             }
         }
     }
