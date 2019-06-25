@@ -1,16 +1,17 @@
 ﻿using System.Windows;
 using Sodium.Frp;
+using Sodium.Functional;
 
 namespace Minesweeper.Mechanics.Squares
 {
     public class Mine
     {
-        public Mine( int target, Stream<int> hitStream )
+        public Mine( Stream<Unit> sClicked )
         {
-            SClip = hitStream.Filter( target.Equals ).Map( t => HitSquare );
+            SClip = sClicked.Map( u => Square );
         }
 
-        private static Square HitSquare => new Square(
+        private static Square Square => new Square(
             "*",
             FontWeights.Bold,
             SystemColors.ControlTextBrush,

@@ -12,30 +12,30 @@ namespace Minesweeper.Mechanics
     {
         private static Cell<List<T>> Sequence<T>( IEnumerable<Cell<T>> input )
         {
-            return input.Aggregate( Cell.Constant( new List<T>() ), (current, c) => current.Lift(c, (list0, a) => new List<T>(list0) {a}));
+            return input.Aggregate( Cell.Constant( new List<T>() ), ( current, c ) => current.Lift( c, ( list0, a ) => new List<T>( list0 ) { a } ) );
         }
 
         public Game( int columns, int rows, int mines )
         {
             Mines = LayMines( mines, columns * rows );
+            Adjacent = GetAdjacent( columns, rows );
             Hints = GatherHints( Mines, columns, rows );
         }
 
         private ISet<int> Mines { get; }
+        private IReadOnlyDictionary<int, ISet<int>> Adjacent { get; }
         private IReadOnlyDictionary<int, int> Hints { get; }
 
         public Stream<Square> ToSClip( int target, Stream<Unit> sClicked )
         {
-            var hitStream = sClicked.Map(u => target);
-
             if( Mines.Contains( target ) )
             {
-                return new Mine( target, hitStream ).SClip;
+                return new Mine( sClicked ).SClip;
             }
 
             if( Hints.ContainsKey( target ) )
             {
-                return Hints[target] > 0 ? new Hint( target, Hints[target], hitStream ).SClip : new Void( target, hitStream ).SClip;
+                return Hints[target] > 0 ? new Hint( Hints[target], sClicked ).SClip : new Void( sClicked ).SClip;
             }
 
             return Stream.Never<Square>();
@@ -62,49 +62,55 @@ namespace Minesweeper.Mechanics
             return mines;
         }
 
-        private IReadOnlyDictionary<int, int> GatherHints( ISet<int> mines, int columns, int rows )
+        private IReadOnlyDictionary<int, ISet<int>> GetAdjacent( int columns, int rows )
         {
-            int CountMinesAround( int target )
+            return Enumerable
+                .Range( 0, columns * rows )
+                .ToDictionary( target => target, target => GetAdjacentToTarget( target, columns, rows ) );
+        }
+
+        private ISet<int> GetAdjacentToTarget( int target, int columns, int rows )
+        {
+            int north = target - columns,
+                south = target + columns,
+                west = target - 1,
+                east = target + 1,
+                northWest = north - 1,
+                northEast = north + 1,
+                southWest = south - 1,
+                southEast = south + 1;
+
+            if( target / rows == 0 )
             {
-                int north = target - columns,
-                    south = target + columns,
-                    east = target - 1,
-                    west = target + 1,
-                    northEast = north - 1,
-                    northWest = north + 1,
-                    southEast = south - 1,
-                    southWest = south + 1;
-
-                if( target / rows == 0 )
-                {
-                    northWest = north = northEast = -1;
-                }
-
-                if( target / rows == rows - 1 )
-                {
-                    southWest = south = southEast = -1;
-                }
-
-                if( target % columns == 0 )
-                {
-                    northWest = west = southWest = -1;
-                }
-
-                if( target % columns == columns - 1 )
-                {
-                    northEast = east = southEast = -1;
-                }
-
-                return new[] { north, south, east, west, northEast, northWest, southEast, southWest }
-                    .Where( adjacent => adjacent >= 0 )
-                    .Where( mines.Contains )
-                    .Count();
+                northWest = north = northEast = -1;
             }
 
+            if( target / rows == rows - 1 )
+            {
+                southWest = south = southEast = -1;
+            }
+
+            if( target % columns == 0 )
+            {
+                northWest = west = southWest = -1;
+            }
+
+            if( target % columns == columns - 1 )
+            {
+                northEast = east = southEast = -1;
+            }
+
+            var adjacent = new[] { north, south, east, west, northEast, northWest, southEast, southWest };
+
+            return new HashSet<int>( adjacent.Where( a => a >= 0 ) );
+        }
+
+        private IReadOnlyDictionary<int, int> GatherHints( ISet<int> mines, int columns, int rows )
+        {
             return Enumerable
                 .Range( 0, columns * rows )
                 .Where( target => !mines.Contains( target ) )
-                .ToDictionary( target => target, CountMinesAround );
+                .ToDictionary( target => target, target => Adjacent[target].Where( mines.Contains ).Count() );
         }
     }
 }

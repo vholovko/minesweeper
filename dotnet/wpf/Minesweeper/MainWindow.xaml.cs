@@ -18,9 +18,9 @@ namespace Minesweeper
             const int buttonSize = 24;
 
             // Introduction
-            //            const int columns = 8;
-            //            const int rows = 8;
-            //            const int mines = 10;
+            const int columns = 8;
+            const int rows = 8;
+            const int mines = 10;
 
             // Intermediate
             // const int columns = 16;
@@ -28,9 +28,9 @@ namespace Minesweeper
             // const int mines = 40;
 
             // Expert
-            const int columns = 30;
-            const int rows = 16;
-            const int mines = 99;
+//            const int columns = 30;
+//            const int rows = 16;
+//            const int mines = 99;
 
             Container.MaxWidth = buttonSize * columns;
             Container.MaxHeight = buttonSize * rows;

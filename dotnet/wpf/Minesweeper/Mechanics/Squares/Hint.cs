@@ -2,6 +2,7 @@
 using System.Windows;
 using System.Windows.Media;
 using Sodium.Frp;
+using Sodium.Functional;
 
 namespace Minesweeper.Mechanics.Squares
 {
@@ -19,15 +20,15 @@ namespace Minesweeper.Mechanics.Squares
             { 8, Brushes.DarkRed }
         };
 
-        public Hint( int target, int minesAround, Stream<int> hitStream )
+        public Hint( int minesAround, Stream<Unit> sClicked )
         {
             MinesAround = minesAround;
-            SClip = hitStream.Filter( target.Equals ).Map( t => HitSquare );
+            SClip = sClicked.Map( u => Square );
         }
 
         private int MinesAround { get; }
 
-        private Square HitSquare => new Square(
+        private Square Square => new Square(
             MinesAround,
             FontWeights.Bold,
             Colors[MinesAround],

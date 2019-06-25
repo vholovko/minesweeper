@@ -1,21 +1,22 @@
 ﻿using System.Windows;
 using Sodium.Frp;
+using Sodium.Functional;
 
 namespace Minesweeper.Mechanics.Squares
 {
     public class Void
     {
-        public Void( int target, Stream<int> hitStream)
+        public Void( Stream<Unit> sClicked )
         {
-            SClip = hitStream.Filter( target.Equals ).Map( t => HitSquare );
+            SClip = sClicked.Map( u => Square );
         }
 
-        public static Square HitSquare => new Square(
+        public static Square Square => new Square(
             null,
             FontWeights.Normal,
             SystemColors.ControlTextBrush,
             SystemColors.ControlBrush,
-            false);
+            false );
 
         public Stream<Square> SClip { get; }
     }
