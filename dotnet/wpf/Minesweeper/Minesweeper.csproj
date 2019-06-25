@@ -70,6 +70,12 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Mechanics\Game.cs" />
+    <Compile Include="Mechanics\Squares\Flag.cs" />
+    <Compile Include="Mechanics\Squares\Hint.cs" />
+    <Compile Include="Mechanics\Squares\Mine.cs" />
+    <Compile Include="Mechanics\Square.cs" />
+    <Compile Include="Mechanics\Squares\Void.cs" />
     <Compile Include="SWidgets\DispatcherExtensionMethods.cs" />
     <Compile Include="SWidgets\SButton.cs" />
     <Page Include="MainWindow.xaml">

@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
+using Minesweeper.Mechanics;
 using Sodium.Frp;
 using Sodium.Functional;
 
@@ -12,25 +11,34 @@ namespace Minesweeper.SWidgets
     {
         private readonly IReadOnlyList<IListener> listeners;
 
-        public SButton()
-            : this( Cell.Constant( SystemColors.ControlLightBrush ), Cell.Constant(true) )
-        {
-        }
-
-        public SButton( Cell<SolidColorBrush> background, Cell<bool> enabled )
+        public SButton( Cell<Square> square )
         {
             StreamSink<Unit> sClickedSink = Stream.CreateSink<Unit>();
             SClicked = sClickedSink;
             Click += ( sender, args ) => sClickedSink.Send( Unit.Value );
 
             // Set the initial value at the end of the transaction so it works with CellLoops.
-            Transaction.Post( () => Background = background.Sample() );
-            Transaction.Post( () => IsEnabled = enabled.Sample());
+            Transaction.Post( () =>
+            {
+                var sample = square.Sample();
+
+                Content = sample.Content;
+                FontWeight = sample.FontWeight;
+                Foreground = sample.Foreground;
+                Background = sample.Background;
+                IsEnabled = sample.IsEnabled;
+            } );
 
             // ReSharper disable once UseObjectOrCollectionInitializer
             List<IListener> listeners = new List<IListener>();
-            listeners.Add( background.Updates().Listen( e => Dispatcher.InvokeIfNecessary( () => Background = e ) ) );
-            listeners.Add( enabled.Updates().Listen( e => Dispatcher.InvokeIfNecessary( () => IsEnabled = e ) ) );
+            listeners.Add( square.Updates().Listen( e => Dispatcher.InvokeIfNecessary( () =>
+            {
+                Content = e.Content;
+                FontWeight = e.FontWeight;
+                Foreground = e.Foreground;
+                Background = e.Background;
+                IsEnabled = e.IsEnabled;
+            } ) ) );
             this.listeners = listeners;
         }
 
