@@ -10,18 +10,13 @@ namespace Minesweeper.Mechanics
 {
     public class Game
     {
-        private static Cell<List<T>> Sequence<T>( IEnumerable<Cell<T>> input )
-        {
-            return input.Aggregate( Cell.Constant( new List<T>() ), ( current, c ) => current.Lift( c, ( list0, a ) => new List<T>( list0 ) { a } ) );
-        }
-
-        public Game( int columns, int rows, int mines, Stream<int> sClicked )
+        public Game( int columns, int rows, int mines, Stream<int> sCheck, Stream<int> sFlag )
         {
             Mines = LayMines( mines, columns * rows );
             Adjacent = GetAdjacent( columns, rows );
             Hints = GatherHints( columns, rows, Mines, Adjacent );
             Voids = Hints.Keys.Where( target => Hints[target] == 0 ).ToHashSet();
-            Field = GetField( columns, rows, sClicked );
+            Field = GetField( columns, rows, sCheck, sFlag );
         }
 
         private ISet<int> Mines { get; }
@@ -30,35 +25,49 @@ namespace Minesweeper.Mechanics
         private ISet<int> Voids { get; }
         public IReadOnlyDictionary<int, Cell<Square>> Field { get; }
 
-        private IReadOnlyDictionary<int, Cell<Square>> GetField( int columns, int rows, Stream<int> sClicked )
+        private IReadOnlyDictionary<int, Cell<Square>> GetField( int columns, int rows, Stream<int> sCheck, Stream<int> sFlag )
         {
             return Enumerable
                 .Range( 0, columns * rows )
-                .ToDictionary( target => target, target => GetSquare( target, sClicked ) );
+                .ToDictionary( target => target, target => GetSquare( target, sCheck, sFlag ) );
         }
 
-        private Cell<Square> GetSquare( int target, Stream<int> sClicked )
+        private Cell<Square> GetSquare( int target, Stream<int> sCheck, Stream<int> sFlag )
         {
-            Stream<ISet<int>> sFlipVoid = sClicked.Filter( Voids.Contains ).Map( t => CollectConnectedVoid( t, Voids, Adjacent ) );
+            Stream<int> sMark = sFlag.Filter( target.Equals );
+            CellLoop<bool> flag = new CellLoop<bool>();
+            Stream<bool> sInvert = sMark.Snapshot( flag, (_, value) => !value );
+            flag.Loop( sInvert.Hold( true ) );
+
+            Cell<Square> square = sMark.Snapshot( flag, (_, value) => value ? new Flag().Square : new Tile().Square ).Hold(new Tile().Square).SwitchC();
+            // Cell<Square> square = sMark.Map( _ => new Flag().Square ).Hold( new Tile().Square ).SwitchC();
+
+            Stream<ISet<int>> sFlipVoid = sCheck.Filter( Voids.Contains ).Map( t => CollectConnectedVoid( t, Voids, Adjacent ) );
 
             if( Mines.Contains( target ) )
             {
-                return new Mine( target, sClicked ).Square;
+                var sTrigger = sCheck.Filter(target.Equals);
+
+                return sTrigger.Map( _ => new Mine().Square ).Hold( square ).SwitchC();
             }
 
             if( Voids.Contains( target ) )
             {
-                // Adjacent[target].Where(Voids.Contains).ToHashSet()
-                return new Void( target, sClicked, sFlipVoid ).Square;
+                var sFlip = sFlipVoid.Filter(targets => targets.Contains(target)).Map(_ => Unit.Value);
+                var sTrigger = sCheck.Filter( target.Equals ).Map( _ => Unit.Value ).OrElse( sFlip );
+
+                return sTrigger.Map( _ => new Void().Square ).Hold( square ).SwitchC();
             }
 
             if( Hints.ContainsKey( target ) )
             {
-                var sFlipHint = sFlipVoid.Filter( voids => Adjacent[target].Any( voids.Contains ) ).Map( voids => Unit.Value );
-                return new Hint( target, Hints[target], sClicked, sFlipHint ).Square;
+                var sFlip = sFlipVoid.Filter( voids => Adjacent[target].Any( voids.Contains ) ).Map( voids => Unit.Value );
+                var sTrigger = sCheck.Filter( target.Equals ).Map( _ => Unit.Value ).OrElse( sFlip );
+
+                return sTrigger.Map( _ => new Hint( Hints[target] ).Square ).Hold( square ).SwitchC();
             }
 
-            return Cell.Constant( Square.Default );
+            return new Tile().Square;
         }
 
         private ISet<int> CollectConnectedVoid( int target, ISet<int> voids, IReadOnlyDictionary<int, ISet<int>> adjacent, ISet<int> connectedVoids = null )

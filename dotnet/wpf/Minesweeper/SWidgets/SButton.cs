@@ -17,6 +17,10 @@ namespace Minesweeper.SWidgets
             SClicked = sClickedSink;
             Click += ( sender, args ) => sClickedSink.Send( Unit.Value );
 
+            StreamSink<Unit> sClickedRightSink = Stream.CreateSink<Unit>();
+            SClickedRight = sClickedRightSink;
+            MouseRightButtonDown += ( sender, args ) => sClickedRightSink.Send( Unit.Value );
+
             // Set the initial value at the end of the transaction so it works with CellLoops.
             Transaction.Post( () =>
             {
@@ -43,6 +47,8 @@ namespace Minesweeper.SWidgets
         }
 
         public Stream<Unit> SClicked { get; }
+
+        public Stream<Unit> SClickedRight { get; }
 
         public void Dispose()
         {

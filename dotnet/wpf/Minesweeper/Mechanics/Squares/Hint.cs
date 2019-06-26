@@ -2,7 +2,6 @@
 using System.Windows;
 using System.Windows.Media;
 using Sodium.Frp;
-using Sodium.Functional;
 
 namespace Minesweeper.Mechanics.Squares
 {
@@ -20,17 +19,14 @@ namespace Minesweeper.Mechanics.Squares
             { 8, Brushes.DarkRed }
         };
 
-        public Hint( int target, int minesAround, Stream<int> sClicked, Stream<Unit> sFlip )
+        public Hint( int minesAround )
         {
-            var signal = sClicked.Filter( target.Equals ).Map( _ => Unit.Value ).OrElse( sFlip );
-            var square = new CellLoop<Square>();
-            square.Loop( signal.Map( _ => new Square(
-                  minesAround,
-                  FontWeights.Bold,
-                  Colors[minesAround],
-                  SystemColors.ControlBrush,
-                  false ) ).Hold( Mechanics.Square.Default ) );
-            Square = square;
+            Square = Cell.Constant( new Square(
+                minesAround,
+                FontWeights.Bold,
+                Colors[minesAround],
+                SystemColors.ControlBrush,
+                false ) );
         }
 
         public Cell<Square> Square { get; }

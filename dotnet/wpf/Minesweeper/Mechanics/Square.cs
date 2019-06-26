@@ -19,12 +19,5 @@ namespace Minesweeper.Mechanics
         public FontWeight FontWeight { get; }
         public SolidColorBrush Foreground { get; }
         public bool IsEnabled { get; }
-
-        public static Square Default => new Square(
-            null,
-            FontWeights.Normal,
-            SystemColors.ControlTextBrush,
-            SystemColors.ControlLightBrush,
-            true );
     }
 }

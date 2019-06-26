@@ -1,6 +1,20 @@
-﻿namespace Minesweeper.Mechanics.Squares
+﻿using System.Windows;
+using Sodium.Frp;
+
+namespace Minesweeper.Mechanics.Squares
 {
-    class Flag
+    public class Flag
     {
+        public Flag()
+        {
+            Square = Cell.Constant( new Square(
+                "ℬ",
+                FontWeights.Normal,
+                SystemColors.ControlTextBrush,
+                SystemColors.ControlDarkBrush,
+                true ) );
+        }
+
+        public Cell<Square> Square { get; }
     }
 }

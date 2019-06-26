@@ -39,6 +39,7 @@ namespace Minesweeper
             Transaction.RunVoid( () =>
              {
                  var sClicked = Stream.Never<int>();
+                 var sClickedRight = Stream.Never<int>();
                  var squares = new Dictionary<int, CellLoop<Square>>();
                  foreach( var target in Enumerable.Range( 0, columns * rows ) )
                  {
@@ -46,10 +47,11 @@ namespace Minesweeper
                      squares.Add( target, square );
                      var button = new SButton( square ) { Width = buttonSize, Height = buttonSize };
                      sClicked = button.SClicked.Map( u => target ).OrElse( sClicked );
+                     sClickedRight = button.SClickedRight.Map( u => target ).OrElse( sClickedRight );
                      Container.Children.Add( button );
                  }
 
-                 var field = new Game( columns, rows, mines, sClicked ).Field;
+                 var field = new Game( columns, rows, mines, sClicked, sClickedRight ).Field;
 
                  foreach( var target in Enumerable.Range( 0, columns * rows ) )
                  {

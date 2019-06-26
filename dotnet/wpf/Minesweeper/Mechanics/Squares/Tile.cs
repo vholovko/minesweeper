@@ -3,18 +3,17 @@ using Sodium.Frp;
 
 namespace Minesweeper.Mechanics.Squares
 {
-    public class Mine
+    public class Tile
     {
-        public Mine()
+        public Tile()
         {
             Square = Cell.Constant( new Square(
-                "*",
-                FontWeights.Bold,
+                null,
+                FontWeights.Normal,
                 SystemColors.ControlTextBrush,
-                SystemColors.ControlBrush,
-                false ) );
+                SystemColors.ControlLightBrush,
+                true ) );
         }
-
         public Cell<Square> Square { get; }
     }
 }
