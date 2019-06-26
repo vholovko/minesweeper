@@ -74,18 +74,15 @@ namespace Minesweeper.Mechanics
         {
             connectedVoids = connectedVoids ?? new HashSet<int>();
 
-            if( voids.Contains( target ) )
+            foreach( var adjacentVoid in adjacent[target].Where( voids.Contains ) )
             {
-                foreach( var adjacentVoid in adjacent[target].Where( voids.Contains ) )
+                if( connectedVoids.Contains( adjacentVoid ) )
                 {
-                    if( connectedVoids.Contains( adjacentVoid ) )
-                    {
-                        continue;
-                    }
-
-                    connectedVoids.Add( adjacentVoid );
-                    connectedVoids.UnionWith( CollectConnectedVoid( adjacentVoid, voids, adjacent, connectedVoids ) );
+                    continue;
                 }
+
+                connectedVoids.Add( adjacentVoid );
+                connectedVoids.UnionWith( CollectConnectedVoid( adjacentVoid, voids, adjacent, connectedVoids ) );
             }
 
             return connectedVoids;
