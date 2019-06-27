@@ -8,7 +8,7 @@ namespace Minesweeper.Mechanics.Squares
         public Mine()
         {
             Square = Cell.Constant( new Square(
-                "*",
+                "☼",
                 FontWeights.Bold,
                 SystemColors.ControlTextBrush,
                 SystemColors.ControlBrush,

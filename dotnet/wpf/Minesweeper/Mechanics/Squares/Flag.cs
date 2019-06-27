@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using System.Windows.Media;
 using Sodium.Frp;
 
 namespace Minesweeper.Mechanics.Squares
@@ -8,10 +9,10 @@ namespace Minesweeper.Mechanics.Squares
         public Flag()
         {
             Square = Cell.Constant( new Square(
-                "ℬ",
-                FontWeights.Normal,
-                SystemColors.ControlTextBrush,
-                SystemColors.ControlDarkBrush,
+                "!",
+                FontWeights.Bold,
+                Brushes.Red,
+                SystemColors.ControlLightLightBrush,
                 true ) );
         }
 

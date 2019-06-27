@@ -16,6 +16,7 @@ namespace Minesweeper.Mechanics
             Adjacent = GetAdjacent( columns, rows );
             Hints = GatherHints( columns, rows, Mines, Adjacent );
             Voids = Hints.Keys.Where( target => Hints[target] == 0 ).ToHashSet();
+            Flags = GetFlags( columns, rows, sFlag );
             Field = GetField( columns, rows, sCheck, sFlag );
         }
 
@@ -24,6 +25,24 @@ namespace Minesweeper.Mechanics
         private IReadOnlyDictionary<int, int> Hints { get; }
         private ISet<int> Voids { get; }
         public IReadOnlyDictionary<int, Cell<Square>> Field { get; }
+        public IReadOnlyDictionary<int, Cell<bool>> Flags { get; }
+
+        private IReadOnlyDictionary<int, Cell<bool>> GetFlags( int columns, int rows, Stream<int> sFlag )
+        {
+            return Enumerable
+                .Range( 0, columns * rows )
+                .ToDictionary( target => target, target => GetFlag( target, sFlag ) );
+        }
+
+        private Cell<bool> GetFlag( int target, Stream<int> sFlag )
+        {
+            Stream<int> sMark = sFlag.Filter( target.Equals );
+            CellLoop<bool> flag = new CellLoop<bool>();
+            Stream<bool> sInvert = sMark.Snapshot( flag, ( _, value ) => !value );
+            flag.Loop( sInvert.Hold( true ) );
+
+            return flag;
+        }
 
         private IReadOnlyDictionary<int, Cell<Square>> GetField( int columns, int rows, Stream<int> sCheck, Stream<int> sFlag )
         {
@@ -34,27 +53,23 @@ namespace Minesweeper.Mechanics
 
         private Cell<Square> GetSquare( int target, Stream<int> sCheck, Stream<int> sFlag )
         {
-            Stream<int> sMark = sFlag.Filter( target.Equals );
-            CellLoop<bool> flag = new CellLoop<bool>();
-            Stream<bool> sInvert = sMark.Snapshot( flag, (_, value) => !value );
-            flag.Loop( sInvert.Hold( true ) );
+            Cell<Square> square = sFlag.Filter( target.Equals ).Snapshot( Flags[target], ( _, value ) => value ? new Flag().Square : new Tile().Square ).Hold( new Tile().Square ).SwitchC();
 
-            Cell<Square> square = sMark.Snapshot( flag, (_, value) => value ? new Flag().Square : new Tile().Square ).Hold(new Tile().Square).SwitchC();
-            // Cell<Square> square = sMark.Map( _ => new Flag().Square ).Hold( new Tile().Square ).SwitchC();
-
-            Stream<ISet<int>> sFlipVoid = sCheck.Filter( Voids.Contains ).Map( t => CollectConnectedVoid( t, Voids, Adjacent ) );
+            Stream<ISet<int>> sFlipMine = sCheck.Filter( t => Flags[t].Sample() ).Filter( Mines.Contains ).Map( _ => Mines );
+            Stream<ISet<int>> sFlipVoid = sCheck.Filter( t => Flags[t].Sample() ).Filter( Voids.Contains ).Map( t => CollectConnectedVoid( t, Voids, Adjacent ) );
 
             if( Mines.Contains( target ) )
             {
-                var sTrigger = sCheck.Filter(target.Equals);
+                var sFlip = sFlipMine.Filter( targets => targets.Contains( target ) ).Map( _ => Unit.Value );
+                var sTrigger = sCheck.Filter( target.Equals ).Filter( _ => Flags[target].Sample() ).Map( _ => Unit.Value ).OrElse( sFlip );
 
                 return sTrigger.Map( _ => new Mine().Square ).Hold( square ).SwitchC();
             }
 
             if( Voids.Contains( target ) )
             {
-                var sFlip = sFlipVoid.Filter(targets => targets.Contains(target)).Map(_ => Unit.Value);
-                var sTrigger = sCheck.Filter( target.Equals ).Map( _ => Unit.Value ).OrElse( sFlip );
+                var sFlip = sFlipVoid.Filter( targets => targets.Contains( target ) ).Map( _ => Unit.Value );
+                var sTrigger = sCheck.Filter( target.Equals ).Filter( _ => Flags[target].Sample() ).Map( _ => Unit.Value ).OrElse( sFlip );
 
                 return sTrigger.Map( _ => new Void().Square ).Hold( square ).SwitchC();
             }
@@ -62,7 +77,7 @@ namespace Minesweeper.Mechanics
             if( Hints.ContainsKey( target ) )
             {
                 var sFlip = sFlipVoid.Filter( voids => Adjacent[target].Any( voids.Contains ) ).Map( voids => Unit.Value );
-                var sTrigger = sCheck.Filter( target.Equals ).Map( _ => Unit.Value ).OrElse( sFlip );
+                var sTrigger = sCheck.Filter( target.Equals ).Filter( _ => Flags[target].Sample() ).Map( _ => Unit.Value ).OrElse( sFlip );
 
                 return sTrigger.Map( _ => new Hint( Hints[target] ).Square ).Hold( square ).SwitchC();
             }
@@ -72,7 +87,7 @@ namespace Minesweeper.Mechanics
 
         private ISet<int> CollectConnectedVoid( int target, ISet<int> voids, IReadOnlyDictionary<int, ISet<int>> adjacent, ISet<int> connectedVoids = null )
         {
-            connectedVoids = connectedVoids ?? (voids.Contains(target) ? new HashSet<int> { target } : new HashSet<int>());
+            connectedVoids = connectedVoids ?? ( voids.Contains( target ) ? new HashSet<int> { target } : new HashSet<int>() );
 
             foreach( var adjacentVoid in adjacent[target].Where( voids.Contains ) )
             {
