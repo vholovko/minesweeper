@@ -142,12 +142,12 @@ namespace Minesweeper.Mechanics
                 southWest = south - 1,
                 southEast = south + 1;
 
-            if( target / rows == 0 )
+            if( target / columns == 0 )
             {
                 northWest = north = northEast = -1;
             }
 
-            if( target / rows == rows - 1 )
+            if( target / columns == rows - 1 )
             {
                 southWest = south = southEast = -1;
             }

@@ -11,7 +11,7 @@ namespace Minesweeper.Mechanics.Squares
             Square = Cell.Constant( new Square(
                 "!",
                 FontWeights.Bold,
-                Brushes.Red,
+                Brushes.Crimson,
                 SystemColors.ControlLightLightBrush,
                 true ) );
         }
