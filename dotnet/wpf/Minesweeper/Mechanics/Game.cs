@@ -72,7 +72,7 @@ namespace Minesweeper.Mechanics
 
         private ISet<int> CollectConnectedVoid( int target, ISet<int> voids, IReadOnlyDictionary<int, ISet<int>> adjacent, ISet<int> connectedVoids = null )
         {
-            connectedVoids = connectedVoids ?? new HashSet<int>();
+            connectedVoids = connectedVoids ?? (voids.Contains(target) ? new HashSet<int> { target } : new HashSet<int>());
 
             foreach( var adjacentVoid in adjacent[target].Where( voids.Contains ) )
             {
